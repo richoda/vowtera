@@ -19,6 +19,7 @@ Dokumen ini menjelaskan setiap bagian kode yang dibangun dalam project ini: cara
 11. [pages/contact.vue](#11-pagescontactvue)
 12. [tailwind.config.js](#12-tailwindconfigjs)
 13. [Konsep Vue & Nuxt yang Digunakan](#13-konsep-vue--nuxt-yang-digunakan)
+14. [Environment Configuration](#14-environment-configuration)
 
 ---
 
@@ -420,3 +421,88 @@ content: [
 | `layouts/plain.vue` | `login.vue` | Layout alternatif tanpa sidebar |
 | `composables/` | `useSidebar.ts` | Auto-import tanpa perlu `import` manual |
 | `pages/` | Semua halaman | File-based routing — nama file = URL |
+
+---
+
+## 14. Environment Configuration
+
+Project ini mendukung tiga environment: **development**, **staging**, dan **production**. Masing-masing punya file `.env` tersendiri.
+
+### Struktur File
+
+```
+frontend/
+├── .env.example       # Template — di-commit ke git, isi nilai aman
+├── .env.staging       # Env staging — TIDAK di-commit
+└── .env.production    # Env production — TIDAK di-commit
+```
+
+### Variabel yang Tersedia
+
+| Variabel | Keterangan |
+|----------|------------|
+| `NUXT_PUBLIC_API_BASE_URL` | URL base API backend |
+| `NUXT_PUBLIC_APP_NAME` | Nama aplikasi yang ditampilkan |
+| `NUXT_PUBLIC_APP_ENV` | Nama environment aktif (`development`/`staging`/`production`) |
+
+Prefix `NUXT_PUBLIC_` berarti variabel ini **aman diakses di sisi client (browser)**. Variabel tanpa prefix hanya tersedia di server.
+
+### `runtimeConfig` di `nuxt.config.ts`
+
+```ts
+runtimeConfig: {
+  public: {
+    apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+    appName: process.env.NUXT_PUBLIC_APP_NAME || 'Vowtera',
+    appEnv: process.env.NUXT_PUBLIC_APP_ENV || 'development',
+  },
+}
+```
+
+`runtimeConfig.public` adalah cara standar Nuxt untuk meneruskan env vars ke komponen. Nilai default (fallback) digunakan saat variabel tidak di-set — berguna saat development tanpa file `.env`.
+
+### Cara Akses di Komponen
+
+```vue
+<script setup>
+const config = useRuntimeConfig()
+
+console.log(config.public.apiBaseUrl) // URL API aktif
+console.log(config.public.appEnv)     // 'staging' / 'production' / 'development'
+</script>
+```
+
+`useRuntimeConfig()` adalah composable bawaan Nuxt — tidak perlu di-import.
+
+### Contoh Penggunaan: Fetch ke API
+
+```ts
+const config = useRuntimeConfig()
+
+const data = await $fetch(`${config.public.apiBaseUrl}/api/users`)
+```
+
+Dengan ini, URL API otomatis berubah sesuai environment tanpa perlu mengubah kode.
+
+### Script per Environment
+
+| Command | Keterangan |
+|---------|------------|
+| `npm run dev` | Development lokal (tanpa env file khusus) |
+| `npm run dev:staging` | Development dengan variabel staging |
+| `npm run build:staging` | Build untuk deploy ke server staging |
+| `npm run build:production` | Build untuk deploy ke server production |
+| `npm run generate:staging` | Static generate untuk staging |
+| `npm run generate:production` | Static generate untuk production |
+
+### Alur Deploy
+
+```
+Developer push kode
+       │
+       ├── staging server  →  cp .env.staging .env  →  npm run build:staging
+       │
+       └── production server → cp .env.production .env → npm run build:production
+```
+
+**Penting:** File `.env.staging` dan `.env.production` harus diisi manual di server — tidak pernah di-commit ke git karena berisi kredensial sensitif (password DB, JWT secret, dll.).

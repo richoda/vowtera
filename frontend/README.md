@@ -20,32 +20,43 @@ Template admin panel berbasis **Nuxt 4** dengan sidebar collapsible, dibangun me
 ## Struktur Project
 
 ```
-admin-config/
-├── app.vue                    # Entry point — hanya <NuxtLayout><NuxtPage />
-├── layouts/
-│   ├── default.vue            # Layout utama (SideBar + Header + <slot />)
-│   └── plain.vue              # Layout kosong untuk halaman tanpa sidebar (login)
-├── components/
-│   ├── SideBar.vue            # Sidebar collapsible, fixed kiri, active state
-│   └── Header.vue             # Header fixed atas, judul & ikon dinamis
-├── composables/
-│   └── useSidebar.ts          # Shared state open/close sidebar
-├── pages/
-│   ├── index.vue              # Home
-│   ├── login.vue              # Halaman login (layout plain)
-│   ├── overview.vue           # Dashboard stats & aktivitas
-│   ├── about.vue              # Info aplikasi, tech stack, tim
-│   └── contact.vue            # Form pesan & info kontak
-├── assets/
-│   ├── css/global.css
-│   └── img/
-│       ├── logo.png           # Logo penuh (sidebar expanded)
-│       ├── logo1.png          # Logo di halaman login
-│       └── icon.png           # Ikon kecil (sidebar collapsed)
-├── public/
-├── nuxt.config.ts
-├── tailwind.config.js         # content paths wajib diisi agar class ter-generate
-└── package.json
+vowtera/
+├── backend/
+│   ├── main.go                # Entry point Go — baca APP_ENV dan APP_PORT dari env
+│   ├── go.mod
+│   ├── .env.example           # Template env backend
+│   ├── .env.staging           # Env staging (tidak di-commit)
+│   └── .env.production        # Env production (tidak di-commit)
+│
+└── frontend/
+    ├── app.vue                # Entry point — hanya <NuxtLayout><NuxtPage />
+    ├── layouts/
+    │   ├── default.vue        # Layout utama (SideBar + Header + <slot />)
+    │   └── plain.vue          # Layout kosong untuk halaman tanpa sidebar (login)
+    ├── components/
+    │   ├── SideBar.vue        # Sidebar collapsible, fixed kiri, active state
+    │   └── Header.vue         # Header fixed atas, judul & ikon dinamis
+    ├── composables/
+    │   └── useSidebar.ts      # Shared state open/close sidebar
+    ├── pages/
+    │   ├── index.vue          # Home
+    │   ├── login.vue          # Halaman login (layout plain)
+    │   ├── overview.vue       # Dashboard stats & aktivitas
+    │   ├── about.vue          # Info aplikasi, tech stack, tim
+    │   └── contact.vue        # Form pesan & info kontak
+    ├── assets/
+    │   ├── css/global.css
+    │   └── img/
+    │       ├── logo.png       # Logo penuh (sidebar expanded)
+    │       ├── logo1.png      # Logo di halaman login
+    │       └── icon.png       # Ikon kecil (sidebar collapsed)
+    ├── public/
+    ├── nuxt.config.ts         # runtimeConfig untuk env vars
+    ├── tailwind.config.js     # content paths wajib diisi agar class ter-generate
+    ├── .env.example           # Template env frontend (di-commit)
+    ├── .env.staging           # Env staging (tidak di-commit)
+    ├── .env.production        # Env production (tidak di-commit)
+    └── package.json
 ```
 
 ---
@@ -123,6 +134,55 @@ npm run dev      # http://localhost:3000
 npm run build
 npm run preview
 ```
+
+---
+
+## Environment
+
+Project ini mendukung tiga environment. Salin file example lalu isi sesuai kebutuhan:
+
+```bash
+# Frontend
+cp frontend/.env.example frontend/.env.staging
+cp frontend/.env.example frontend/.env.production
+
+# Backend
+cp backend/.env.example backend/.env.staging
+cp backend/.env.example backend/.env.production
+```
+
+### Variabel Frontend
+
+| Variabel | Development | Staging | Production |
+|----------|-------------|---------|------------|
+| `NUXT_PUBLIC_API_BASE_URL` | `http://localhost:8080` | `https://staging-api.vowtera.com` | `https://api.vowtera.com` |
+| `NUXT_PUBLIC_APP_NAME` | `Vowtera` | `Vowtera (Staging)` | `Vowtera` |
+| `NUXT_PUBLIC_APP_ENV` | `development` | `staging` | `production` |
+
+### Variabel Backend
+
+| Variabel | Keterangan |
+|----------|------------|
+| `APP_ENV` | Nama environment aktif |
+| `APP_PORT` | Port server (default: `8080`) |
+| `DB_HOST` | Host database |
+| `DB_NAME` | Nama database |
+| `DB_USER` | Username database |
+| `DB_PASSWORD` | Password database |
+| `JWT_SECRET` | Secret key untuk JWT |
+
+### Script per Environment
+
+```bash
+# Frontend
+npm run dev               # development lokal
+npm run dev:staging       # development dengan env staging
+
+npm run build:staging     # build untuk staging
+npm run build:production  # build untuk production
+```
+
+> File `.env.staging` dan `.env.production` **tidak di-commit** ke git. Pastikan diisi manual di server sebelum deploy.
 
 ---
 
