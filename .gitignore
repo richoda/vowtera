@@ -11,7 +11,13 @@ backend/tmp
 .DS_Store
 Thumbs.db
 
-# Env
+# Env — semua subfolder, kecuali .env.example
 .env
 .env.*
 !.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
