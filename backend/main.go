@@ -2,19 +2,28 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"log"
+	"net/http"
+
+	"admin-api/config"
+	"admin-api/database"
+	"admin-api/handlers"
+	"admin-api/routes"
 )
 
 func main() {
-	appEnv := os.Getenv("APP_ENV")
-	if appEnv == "" {
-		appEnv = "development"
-	}
+	cfg := config.Load()
 
-	appPort := os.Getenv("APP_PORT")
-	if appPort == "" {
-		appPort = "8080"
-	}
+	database.Connect(cfg)
 
-	fmt.Printf("Server admin-api berjalan... [env=%s, port=%s]\n", appEnv, appPort)
+	handlers.SetJWTSecret(cfg.JWTSecret)
+
+	r := routes.Setup(cfg.JWTSecret)
+
+	addr := fmt.Sprintf(":%s", cfg.AppPort)
+	log.Printf("Server %s berjalan di %s [env=%s]", cfg.AppName, addr, cfg.AppEnv)
+
+	if err := http.ListenAndServe(addr, r); err != nil {
+		log.Fatalf("Server error: %v", err)
+	}
 }
